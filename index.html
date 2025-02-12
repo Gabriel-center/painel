@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <!-- Meta tag para responsividade -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora de Painéis LED</title>
+  <!-- Biblioteca html2canvas para converter o card em imagem -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --light-blue: #000a66;
+      --white: #FFFFFF;
+      --orange: #FFA500;
+      --text-color: #333333;
+      --border-color: #CCCCCC;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--light-blue);
+      color: var(--text-color);
+      text-align: center;
+      padding: 10px;
+    }
+    /* Container com os detalhes individuais de cada painel */
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: var(--white);
+      border-radius: 8px;
+      padding: 20px 30px;
+      box-shadow: 0 4px 6px var(--shadow);
+      text-align: left;
+    }
+    h1 {
+      text-align: center;
+      color: var(--orange);
+      margin-bottom: 20px;
+    }
+    p {
+      line-height: 1.5;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+    input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    button {
+      background: var(--orange);
+      color: var(--white);
+      cursor: pointer;
+      border: none;
+      transition: background 0.3s ease;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    button:hover {
+      background: #e69500;
+    }
+    /* Botão de download com largura reduzida */
+    .download-btn {
+      width: auto;
+      padding: 10px 20px;
+    }
+    /* Container para o input de Evento/OS e botão de download */
+    .download-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 20px auto;
+    }
+    /* Pequeno input para Evento/OS */
+    .evento-input {
+      width: 150px;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+    .details-container {
+      margin-top: 20px;
+    }
+    details {
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+    summary {
+      font-weight: bold;
+      cursor: pointer;
+      outline: none;
+    }
+    ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .error {
+      color: red;
+      text-align: center;
+    }
+    /* Representação visual dos painéis */
+    .panel-grid {
+      display: grid;
+      gap: 2px;
+      margin-top: 5px;
+      transform: scale(1);
+      transform-origin: top left;
+    }
+    .placa {
+      background: var(--white);
+      border: 1px solid #000;
+      width: 30px;
+      height: 60px;
+    }
+    .panels-representation {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .panel-container {
+      display: inline-block;
+      text-align: center;
+    }
+    /* Card que contém o desenho dos painéis e as informações extras */
+    .panel-card {
+      display: inline-block;
+      background: var(--white);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px var(--shadow);
+      border-radius: 8px;
+      padding: 10px;
+      margin: 20px auto;
+    }
+    /* Elemento para exibir o Evento no topo do card */
+    #eventoDisplay {
+      text-align: left;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    /* Wrapper interno para medição correta */
+    #panelWrapper {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    /* Grade para as informações extras (2x2) */
+    .extra-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      text-align: left;
+      margin-top: 20px;
+    }
+    .extra-info-item {
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .extra-info-item h2 {
+      margin-top: 0;
+    }
+    /* Regras para dispositivos móveis */
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px 15px;
+      }
+      .download-container {
+        flex-direction: column;
+      }
+      .evento-input, .download-btn {
+        width: 100%;
+      }
+      .extra-info-grid {
+        grid-template-columns: 1fr;
+      }
+      .panel-card {
+        width: 100%;
+        margin: 10px auto;
+        padding: 10px;
+      }
+      body, input, button {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Container com os detalhes individuais de cada painel -->
+  <div class="container">
+    <h1>Calculadora de Painéis LED</h1>
+    <p>
+      Insira a lista de painéis no formato <code>[AxB, AxB, ...]</code>.<br>
+      Cada valor deve ser em metros e múltiplo de 0.5. Exemplo: <code>[1x4, 8x3, 1x4]</code>
+    </p>
+    <input type="text" id="painelInput" placeholder="[1x4, 8x3, 1x4]">
+    <button onclick="calcular()">Calcular</button>
+    <div id="resultado" class="details-container"></div>
+  </div>
+
+  <!-- Card que contém o desenho dos painéis e as informações extras -->
+  <div id="panelCard" class="panel-card">
+    <!-- Evento exibido no topo do card -->
+    <div id="eventoDisplay"></div>
+    <div id="panelWrapper">
+      <div id="panelContent"></div>
+    </div>
+    <!-- Informações extras organizadas em grade 2x2 -->
+    <div id="extraInfoInside"></div>
+  </div>
+
+  <!-- Container com o input para Evento/OS e o botão de download -->
+  <div class="download-container">
+    <input type="text" id="eventoInput" class="evento-input" placeholder="Evento/OS:" />
+    <button class="download-btn" onclick="downloadCardAsPNG()">Baixar Card como PNG</button>
+  </div>
+
+  <script>
+    // Atualiza o texto do Evento no topo do card conforme o usuário digita
+    function updateEvento() {
+      var eventoVal = document.getElementById('eventoInput').value;
+      var eventoDisplay = document.getElementById('eventoDisplay');
+      if (eventoVal.trim() !== "") {
+        eventoDisplay.innerText = "Evento: " + eventoVal;
+      } else {
+        eventoDisplay.innerText = "";
+      }
+    }
+    document.getElementById('eventoInput').addEventListener('input', updateEvento);
+
+    // Calcula a "Mão francesa base" utilizando algoritmo greedy
+    function calcularMaoFrancesaBase(altura) {
+      let remaining = altura;
+      const pieces = [1.8, 0.9, 0.5];
+      let counts = {};
+      for (let i = 0; i < pieces.length; i++) {
+        let piece = pieces[i];
+        counts[piece] = Math.floor(remaining / piece);
+        remaining = parseFloat((remaining - counts[piece] * piece).toFixed(2));
+      }
+      let extra18 = (altura >= 4 ? 1 : 0);
+      return { base: counts, extra: { "1.8": extra18 } };
+    }
+
+    // Multiplica os valores da mão francesa pelo fator dado
+    function calcularMaoFrancesaQuantidade(maoBase, fator) {
+      let quantidade = { base: {}, extra: {} };
+      for (let key in maoBase.base) {
+        quantidade.base[key] = maoBase.base[key] * fator;
+      }
+      for (let key in maoBase.extra) {
+        quantidade.extra[key] = maoBase.extra[key] * fator;
+      }
+      return quantidade;
+    }
+
+    function calcular() {
+      const input = document.getElementById('painelInput').value;
+      const resultadoDiv = document.getElementById('resultado');
+      const extraInfoDiv = document.getElementById('extraInfoInside');
+      resultadoDiv.innerHTML = '';
+      extraInfoDiv.innerHTML = '';
+
+      let lista = input.replace(/[\[\]]/g, '').replace(/\s+/g, '');
+      if (!lista) {
+        resultadoDiv.innerHTML = '<p class="error">Por favor, insira os dados.</p>';
+        return;
+      }
+
+      const paineis = lista.split(',');
+      let individualDetailsHTML = '';
+      let panelResolutions = [];
+      
+      // Variáveis para os totais
+      let totalGrande = 0, totalMedia = 0, totalPequena = 0;
+      let totalPesoMaoFrancesa = 0;
+      let sumPlacas = 0;
+      let totalLarguraResolucao = 0;
+      let maxAlturaResolucao = 0;
+      let panelGrids = [];
+      
+      paineis.forEach((painelStr, index) => {
+        const partes = painelStr.split('x');
+        if (partes.length !== 2) {
+          individualDetailsHTML += `<p class="error">Formato inválido no painel ${index + 1}: ${painelStr}</p>`;
+          return;
+        }
+        let largura = parseFloat(partes[0]);
+        let altura = parseFloat(partes[1]);
+        if ((largura * 2) % 1 !== 0 || (altura * 2) % 1 !== 0) {
+          individualDetailsHTML += `<p class="error">Os valores do painel ${index + 1} devem ser múltiplos de 0.5: ${painelStr}</p>`;
+          return;
+        }
+        const resolucaoHorizontal = largura * 256;
+        const resolucaoVertical = altura * 256;
+        totalLarguraResolucao += resolucaoHorizontal;
+        if (resolucaoVertical > maxAlturaResolucao) {
+          maxAlturaResolucao = resolucaoVertical;
+        }
+        const placasHorizontais = resolucaoHorizontal / 128;
+        const placasVerticais = resolucaoVertical / 256;
+        const totalPlacas = placasHorizontais * placasVerticais;
+        sumPlacas += totalPlacas;
+        panelGrids.push({ cols: placasHorizontais, rows: placasVerticais });
+        // Armazena a resolução de cada painel para a seção "Outras informações"
+        panelResolutions.push(`Painel ${index + 1} (${largura}x${altura}): *${resolucaoHorizontal} x ${resolucaoVertical}*`);
+        
+        const maoFrancesaInt = Math.ceil((placasHorizontais + 1) / 3);
+        const maoFrancesaBase = calcularMaoFrancesaBase(altura);
+        const maoFrancesaQuantidade = calcularMaoFrancesaQuantidade(maoFrancesaBase, maoFrancesaInt);
+        const pesoMaoFrancesa = (maoFrancesaBase.extra["1.8"] > 0 ? 1 : 0) + (maoFrancesaInt * 3);
+        totalPesoMaoFrancesa += pesoMaoFrancesa;
+        let somaGrande = (maoFrancesaQuantidade.base["1.8"] || 0) + (maoFrancesaQuantidade.extra["1.8"] || 0);
+        let somaMedia  = (maoFrancesaQuantidade.base["0.9"] || 0) + (maoFrancesaQuantidade.extra["0.9"] || 0);
+        let somaPequena = (maoFrancesaQuantidade.base["0.5"] || 0) + (maoFrancesaQuantidade.extra["0.5"] || 0);
+        totalGrande += somaGrande;
+        totalMedia  += somaMedia;
+        totalPequena += somaPequena;
+
+        individualDetailsHTML += `<details>`;
+        individualDetailsHTML += `<summary>Painel ${index + 1} (${largura} x ${altura} m)</summary>`;
+        individualDetailsHTML += `<p><strong>Resolução em pixels:</strong> ${resolucaoHorizontal} x ${resolucaoVertical}</p>`;
+        individualDetailsHTML += `<p><strong>Placas (Horizontal x Vertical):</strong> ${placasHorizontais} x ${placasVerticais}</p>`;
+        individualDetailsHTML += `<p><strong>Total de placas:</strong> ${totalPlacas}</p>`;
+        individualDetailsHTML += `<p><strong>Mão francesas (fator):</strong> ${maoFrancesaInt}</p>`;
+        individualDetailsHTML += `<p><strong>Mão francesa base:</strong></p>`;
+        individualDetailsHTML += `<ul>`;
+        individualDetailsHTML += `<li>1.8m: ${maoFrancesaBase.base["1.8"]}${maoFrancesaBase.extra["1.8"] > 0 ? ' + ' + maoFrancesaBase.extra["1.8"] + ' (extra)' : ''}</li>`;
+        individualDetailsHTML += `<li>0.9m: ${maoFrancesaBase.base["0.9"]}</li>`;
+        individualDetailsHTML += `<li>0.5m: ${maoFrancesaBase.base["0.5"]}</li>`;
+        individualDetailsHTML += `</ul>`;
+        individualDetailsHTML += `<p><strong>Mão francesa quantidade:</strong></p>`;
+        individualDetailsHTML += `<ul>`;
+        individualDetailsHTML += `<li>1.8m: ${maoFrancesaQuantidade.base["1.8"]}${maoFrancesaQuantidade.extra["1.8"] > 0 ? ' + ' + maoFrancesaQuantidade.extra["1.8"] + ' (extra)' : ''}</li>`;
+        individualDetailsHTML += `<li>0.9m: ${maoFrancesaQuantidade.base["0.9"]}</li>`;
+        individualDetailsHTML += `<li>0.5m: ${maoFrancesaQuantidade.base["0.5"]}</li>`;
+        individualDetailsHTML += `</ul>`;
+        individualDetailsHTML += `<p><strong>Pesos para mão francesa:</strong> ${pesoMaoFrancesa}</p>`;
+        individualDetailsHTML += `</details>`;
+      });
+
+      resultadoDiv.innerHTML = individualDetailsHTML;
+
+      // Gera o desenho dos painéis
+      let panelHTML = `<h2>Representação dos Painéis</h2>`;
+      panelHTML += `<div class="panels-representation">`;
+      let maxArea = 0;
+      panelGrids.forEach(panel => {
+        const w = panel.cols * 30 + ((panel.cols > 0) ? ((panel.cols - 1) * 2) : 0);
+        const h = panel.rows * 60 + ((panel.rows > 0) ? ((panel.rows - 1) * 2) : 0);
+        const area = w * h;
+        if (area > maxArea) maxArea = area;
+      });
+      panelGrids.forEach((panel, idx) => {
+        const w = panel.cols * 30 + ((panel.cols > 0) ? ((panel.cols - 1) * 2) : 0);
+        const h = panel.rows * 60 + ((panel.rows > 0) ? ((panel.rows - 1) * 2) : 0);
+        const area = w * h;
+        const align = (area === maxArea) ? 'flex-start' : 'flex-end';
+        panelHTML += `<div class="panel-container" style="align-self: ${align};">`;
+        panelHTML += `<div><strong>Painel ${idx + 1}</strong></div>`;
+        panelHTML += `<div class="panel-grid" style="grid-template-columns: repeat(${panel.cols}, 30px);">`;
+        const totalPlacasPainel = panel.cols * panel.rows;
+        for (let i = 0; i < totalPlacasPainel; i++) {
+          panelHTML += `<div class="placa"></div>`;
+        }
+        panelHTML += `</div>`;
+        panelHTML += `</div>`;
+      });
+      panelHTML += `</div>`;
+      document.getElementById('panelContent').innerHTML = panelHTML;
+
+      adjustPanelScales();
+      adjustPanelsRepresentation();
+      adjustPanelCardWidth();
+
+      // Cálculos para as seções de Cabeamento e Painel
+      let cabosBase = Math.ceil(sumPlacas / 10) * 10;
+      let cabosACNormal = cabosBase;
+      let cabosACBackup = 10;
+      let cabosRJ45Normal = cabosBase;
+      let cabosRJ45Backup = 10;
+      let casesNormal = Math.ceil(sumPlacas / 6);
+      let minACPWR = Math.ceil(sumPlacas / 10);
+      let minSinalRede = Math.ceil(sumPlacas / 20);
+
+      // Cria o HTML com as informações extras organizadas em uma grade 2x2
+      let extraInfoHTML = `
+        <div class="extra-info-grid">
+          <div class="extra-info-item">
+            <h2>Totais de estrutura</h2>
+            <ul>
+              <li>MF Grande: ${totalGrande}</li>
+              <li>MF Média: ${totalMedia}</li>
+              <li>MF Pequena: ${totalPequena}</li>
+              <li>Total pesos: ${totalPesoMaoFrancesa}</li>
+            </ul>
+          </div>
+          <div class="extra-info-item">
+            <h2>Cabeamento</h2>
+            <ul>
+              <li>Cabos PWR/PWR total: ${cabosACNormal} + ${cabosACBackup} backup</li>
+              <li>Cabos RJ45/RJ45 total: ${cabosRJ45Normal} + ${cabosRJ45Backup} backup</li>
+              <li>*MINIMO* AC/PWR: ${minACPWR}</li>
+              <li>*MINIMO* Sinal rede: ${minSinalRede}</li>
+            </ul>
+          </div>
+          <div class="extra-info-item">
+            <h2>Painel</h2>
+            <ul>
+              <li>Quantidade de placas necessárias: ${sumPlacas}</li>
+              <li>Quantidade de cases: ${casesNormal} + 1 backup (total de ${(casesNormal + 1 )* 6} placas)</li>
+              <li>(total de ${(casesNormal + 1 )* 6} placas)</li>
+            </ul>
+          </div>
+          <div class="extra-info-item">
+            <h2>Outras informações</h2>
+            <ul>
+              <li>Resolução total: *${totalLarguraResolucao} x ${maxAlturaResolucao}*</li>
+              ${panelResolutions.map(res => `<li>${res}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+      extraInfoDiv.innerHTML = extraInfoHTML;
+    }
+
+    function adjustPanelScales() {
+      const panelGrids = document.querySelectorAll('.panel-container .panel-grid');
+      panelGrids.forEach(grid => {
+        grid.style.transform = "";
+        const parentWidth = grid.parentElement.clientWidth;
+        const naturalWidth = grid.scrollWidth;
+        let scale = 1;
+        if (naturalWidth > parentWidth) {
+          scale = parentWidth / naturalWidth;
+        }
+        grid.style.transform = `scale(${scale})`;
+      });
+    }
+
+    function adjustPanelsRepresentation() {
+      const panelsContainer = document.querySelector('.panels-representation');
+      if (!panelsContainer) return;
+      panelsContainer.style.transform = "";
+      const children = Array.from(panelsContainer.children);
+      let naturalWidth = 0;
+      children.forEach(child => {
+        naturalWidth += child.offsetWidth;
+      });
+      if (children.length > 1) {
+        const computedStyle = window.getComputedStyle(panelsContainer);
+        const gapPx = parseFloat(computedStyle.getPropertyValue('gap'));
+        naturalWidth += gapPx * (children.length - 1);
+      }
+      const availableWidth = window.innerWidth - 40;
+      if (naturalWidth > availableWidth) {
+        const scale = availableWidth / naturalWidth;
+        panelsContainer.style.transform = `scale(${scale})`;
+        panelsContainer.style.transformOrigin = "left top";
+      } else {
+        panelsContainer.style.transform = "";
+      }
+    }
+
+    function adjustPanelCardWidth() {
+      const panelCard = document.getElementById('panelCard');
+      const panelWrapper = document.getElementById('panelWrapper');
+      if (!panelCard || !panelWrapper) return;
+      
+      // Remove temporariamente o transform para medir o tamanho natural
+      panelWrapper.style.transform = "";
+      panelCard.style.width = "auto";
+      
+      const naturalWidth = panelWrapper.scrollWidth;
+      const computedCardStyle = window.getComputedStyle(panelCard);
+      const paddingLeft = parseFloat(computedCardStyle.paddingLeft);
+      const paddingRight = parseFloat(computedCardStyle.paddingRight);
+      const borderLeft = parseFloat(computedCardStyle.borderLeftWidth);
+      const borderRight = parseFloat(computedCardStyle.borderRightWidth);
+      const extraWidth = paddingLeft + paddingRight + borderLeft + borderRight;
+      
+      const availableWidth = window.innerWidth - 40;
+      const maxWrapperWidth = availableWidth - extraWidth;
+      
+      if (naturalWidth > maxWrapperWidth) {
+        const scale = maxWrapperWidth / naturalWidth;
+        panelWrapper.style.transform = `scale(${scale})`;
+        panelWrapper.style.transformOrigin = "top center";
+        panelCard.style.width = availableWidth + "px";
+      } else {
+        panelWrapper.style.transform = "";
+        panelCard.style.width = (naturalWidth + extraWidth) + "px";
+      }
+      
+      panelCard.style.marginLeft = "auto";
+      panelCard.style.marginRight = "auto";
+    }
+
+    function downloadCardAsPNG() {
+      const card = document.getElementById('panelCard');
+      // Força fundo branco no card antes de capturar
+      card.style.backgroundColor = "white";
+      html2canvas(card, {
+        backgroundColor: "white",
+        scale: 2,
+        useCORS: true
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL("image/png");
+        link.download = "card.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        // Reseta o fundo
+        card.style.backgroundColor = "";
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      adjustPanelScales();
+      adjustPanelsRepresentation();
+      adjustPanelCardWidth();
+    });
+  </script>
+</body>
+</html>
