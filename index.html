@@ -322,7 +322,7 @@
         const maoFrancesaInt = Math.ceil((placasHorizontais + 1) / 3);
         const maoFrancesaBase = calcularMaoFrancesaBase(altura);
         const maoFrancesaQuantidade = calcularMaoFrancesaQuantidade(maoFrancesaBase, maoFrancesaInt);
-        const pesoMaoFrancesa = (maoFrancesaBase.extra["1.8"] > 0 ? 1 : 0) + (maoFrancesaInt * 3);
+        const pesoMaoFrancesa = (maoFrancesaBase.extra["1.8"] > 0 ? 1 : 0) + (maoFrancesaInt * 4);
         totalPesoMaoFrancesa += pesoMaoFrancesa;
         let somaGrande = (maoFrancesaQuantidade.base["1.8"] || 0) + (maoFrancesaQuantidade.extra["1.8"] || 0);
         let somaMedia  = (maoFrancesaQuantidade.base["0.9"] || 0) + (maoFrancesaQuantidade.extra["0.9"] || 0);
@@ -538,3 +538,4 @@
   </script>
 </body>
 </html>
+
